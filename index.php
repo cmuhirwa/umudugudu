@@ -1,4 +1,5 @@
-<?php error_reporting(E_ALL);?>
+<?php error_reporting(E_ALL);
+header("location: login.php");?>
 <!DOCTYPE HTML>
 <html>
     <head>

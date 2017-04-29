@@ -91,7 +91,7 @@
                                                     $companyName = $arrayinfo['name'];
                                                     $passedId = $arrayinfo['id'];
                                                 }
-                                                echo '<a href="company.php?companyid='.$passedId.'">
+                                                echo '<a href="company.php?compId='.$companyid .'">
                                                         <span class="menu_icon"><i class="material-icons">&#xE871;</i></span>
                                                         <span class="menu_title">'.$companyName.'</span>';
 											}

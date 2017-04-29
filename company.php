@@ -53,23 +53,25 @@ if ($existCount > 0) {
 
 ?>
 <?php
-$memberList="";
-$sqllist = $db->query("SELECT * FROM members ORDER BY id DESC");
-$totalMembers = mysqli_num_rows($sqllist);
-WHILE($row=mysqli_fetch_array($sqllist))
-    {
-        $memberList.='
-        <tr>
-            <td><input type="checkbox" data-md-icheck class="ts_checkbox"></td>
-            <td>'.$row['names'].'</td>
-            <td>'.$row['phone'].'</td>
-            <td>'.$row['houseNumber'].'</td>
-            <td class="uk-text-center">
-                <a href="#" class="ts_remove_row"><i class="md-icon material-icons">&#xE872;</i></a>
-            </td>
-        </tr>
-        ';
-    }
+if(isset($_GET['compId'])){
+	$memberList="";
+	$sqllist = $db->query("SELECT * FROM members ORDER BY id DESC");
+	$totalMembers = mysqli_num_rows($sqllist);
+	WHILE($row=mysqli_fetch_array($sqllist))
+	{
+		$memberList.='
+		<tr>
+			<td><input type="checkbox" data-md-icheck class="ts_checkbox"></td>
+			<td>'.$row['names'].'</td>
+			<td>0'.$row['phone'].'</td>
+			<td>'.$row['houseNumber'].'</td>
+			<td class="uk-text-center">
+				<a href="#" class="ts_remove_row"><i class="md-icon material-icons">&#xE872;</i></a>
+			</td>
+		</tr>
+		';
+	}
+}
 ?>
 
 <!doctype html>
@@ -154,27 +156,36 @@ WHILE($row=mysqli_fetch_array($sqllist))
                             <div id="userdiv">
                                 <select id="select_demo_4" data-md-selectize>
                                     <option value="">FROM...</option>
-                                    <option value="a">Intwali</option>
+                                    <option value="<?php echo $companyName;?>"><?php echo $companyName;?></option>
                                 </select></br>
+								</div>
                                 <div class="md-input-wrapper">
                                     <label>BODY</label>
-                                    <textarea class="md-input" name="name" id="name"></textarea>
+                                    <textarea class="md-input" name="smsBody" id="smsBody"></textarea>
                                     <span class="md-input-bar "></span>
-                                </div></br>
+                                </br>
                                 COST: <?php 
                                 $cost = number_format($totalMembers*16);
-                                $balance = number_format(0);
+								$sqlBalance = $db->query("SELECT DISTINCT 
+															IFNULL((SELECT SUM(amount) FROM finance WHERE operation='in'  GROUP BY companyId),0) -
+															IFNULL((SELECT SUM(amount) FROM finance WHERE operation='out'  GROUP BY companyId),0) Balance
+															");
+								$rowBalance = mysqli_fetch_array($sqlBalance);
+                                $balance = number_format($rowBalance['Balance']);
                                 echo $cost.'.00 Rwf<br>';
-                                echo'BALANCE: '.$balance.'.00 Rwf<br>';
+                                echo'BALANCE: '.$balance.'.00 Rwf<br>';?>
+								<div id="smsresults">
+								<?php
                                 if($cost < $balance)
                                     {
-                                        echo'<button onclick="updateUser()" class="md-btn md-btn-success">SEND</button>';
+                                        echo'<div ="results"><button class="md-btn md-btn-success" onclick="sendSms()">SEND</button>';
                                     }
                                 else{
                                         ?>
-
-                                        <button data-uk-modal="{target:'#modal_header_footer'}" class="md-btn md-btn-warning">BUY</button>
-                                        <div class="uk-modal" id="modal_header_footer">
+									<button data-uk-modal="{target:'#modal_header_footer'}" class="md-btn md-btn-warning">BUY</button>
+								</div>
+									</div>
+										<div class="uk-modal" id="modal_header_footer">
                                             <div class="uk-modal-dialog">
                                                 <div class="uk-modal-header">
                                                     <h3 class="uk-modal-title">Buy <i class="material-icons" data-uk-tooltip="{pos:'top'}" title="You can pay with MTN Mobile money or Tigo Cash">&#xE8FD;</i></h3>
@@ -182,7 +193,7 @@ WHILE($row=mysqli_fetch_array($sqllist))
                                                 <p>Your MTN or TIGO number </br>
                                                     <input type="" class="md-input" name="">
                                                 </p><div class="uk-modal-footer uk-text-right">
-                                                    <button type="button" class="md-btn md-btn-flat uk-modal-close">Close</button><button data-uk-modal="{target:'#modal_new'}" type="button" class="md-btn md-btn-flat md-btn-flat-primary">BUY</button>
+                                                    <button type="button" class="md-btn md-btn-flat uk-modal-close">Close</button><button data-uk-modal="{target:'#modal_new'}" type="button" class="md-btn md-btn-flat md-btn-flat-primary" >SEND</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -292,7 +303,34 @@ WHILE($row=mysqli_fetch_array($sqllist))
         ga('create', 'UA-65191727-1', 'auto');
         ga('send', 'pageview');
     </script>
-
+<script>
+function sendSms(){
+	var r = confirm("Are you sure you want to Send this SMS?!");
+    if (r == true) {
+		var sms =$("#smsBody").val();
+		document.getElementById('smsresults').innerHTML = 'Sending SMS to x Contacts Please Dont Close this window...';
+		$.ajax({
+				type : "GET",
+				url : "sendsms.php",
+				dataType : "html",
+				cache : "false",
+				data : {
+					
+					sms : sms,
+				},
+				success : function(html, textStatus){
+					$("#smsresults").html(html);
+				},
+				error : function(xht, textStatus, errorThrown){
+					alert("Error : " + errorThrown);
+				}
+		});
+	}
+	else{
+		alert('Okay then, We wont Send the SMS, thanks!');
+	}
+}
+</script>
 <script src="js/uploadFile.js"></script>
     
 </body>

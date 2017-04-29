@@ -78,7 +78,7 @@ if (isset($_GET['comp'])) {
 								<input type="text" name="cumpanyUserCode" value="<?php echo $thisid;?>" hidden/>
 								<div id="locations">
 								<select name="locationId" id="locationId" onchange="changelocation()">
-									<option value="1">Select</option>
+									<option value="1">-- Select Country --</option>
 									<option value="1">Rwanda</option>
 								</select>
 								</div>
